@@ -2,9 +2,10 @@
 # Start with a minimal pipeline that you can customize to build and deploy your code.
 # Add steps that build, run tests, deploy, and more:
 # https://aka.ms/yaml
+
 variables:
-  ConnectedServiceName: SC_AppService_FlaskPipeline
-  WebAppName: wademoflaskpipeline
+  ConnectedServiceName: 'SC_AppService_FlaskPipeline'
+  WebAppName: 'wademoflaskpipeline'
 
 trigger:
 - master
@@ -24,4 +25,15 @@ steps:
     archiveType: 'zip'
     archiveFile: '$(Build.ArtifactStagingDirectory)/Application$(Build.BuildId).zip'
     replaceExistingArchive: true
-    verbose: # (sin valor); entrada opcional
+    verbose: # (no value); this input is optional
+
+- task: AzureRmWebAppDeployment@4
+  displayName: Azure App Service Deploy
+  inputs:
+    appType: webAppLinux
+    RuntimeStack: 'PYTHON|3.6'
+    ConnectedServiceName: $(ConnectedServiceName)
+    WebAppName: $(WebAppName)
+    Package: '$(Build.ArtifactStagingDirectory)/Application$(Build.BuildId).zip'
+    StartupCommand: 'gunicorn --bind=0.0.0.0 --workers=4 startup:app'
+
